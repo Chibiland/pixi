@@ -1,6 +1,6 @@
 {
-  "name": "pixi.js",
-  "version": "8.1.0",
+  "name": "@chibiland/pixi",
+  "version": "0.0.0-dev",
   "author": "PixiJS Team",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
@@ -45,7 +45,7 @@
     "codesandbox-ci": "run-s build",
     "prerelease": "run-s clean:build test dist",
     "release": "ts-node ./scripts/release.ts",
-    "publish-ci": "npm publish"
+    "publish-ci": "npm publish --access=public"
   },
   "husky": {
     "hooks": {
