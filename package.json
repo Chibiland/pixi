@@ -1,6 +1,6 @@
 {
   "name": "@chibiland/pixi",
-  "version": "0.0.0-dev",
+  "version": "0.0.0",
   "author": "PixiJS Team",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
