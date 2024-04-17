@@ -23,6 +23,7 @@ import type { BLEND_MODES } from '../../rendering/renderers/shared/state/const';
 import type { Dict } from '../../utils/types';
 import type { Optional } from './container-mixins/measureMixin';
 import type { DestroyOptions } from './destroyTypes';
+import Position from "../../chibi/components/Position";
 
 export type ContainerChild = Container;
 
@@ -443,7 +444,7 @@ export class Container<C extends ContainerChild = ContainerChild> extends EventE
      * @internal
      * @ignore
      */
-    public _position: ObservablePoint = new ObservablePoint(this, 0, 0);
+    public _position: Position = new Position(0, 0, this);
 
     /**
      * The scale factor of the object.
@@ -574,6 +575,8 @@ export class Container<C extends ContainerChild = ContainerChild> extends EventE
      * @ignore
      */
     private _didLocalTransformChangeId = -1;
+
+
 
     constructor(options: ContainerOptions<C> = {})
     {
