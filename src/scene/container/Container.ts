@@ -23,6 +23,8 @@ import type { BLEND_MODES } from '../../rendering/renderers/shared/state/const';
 import type { Dict } from '../../utils/types';
 import type { Optional } from './container-mixins/measureMixin';
 import type { DestroyOptions } from './destroyTypes';
+import Loadable from "../../chibi/types/Loadable";
+import {Assets} from "../../assets";
 
 export type ContainerChild = Container;
 
@@ -345,7 +347,7 @@ export interface Container<C extends ContainerChild>
  * </details>
  * @memberof scene
  */
-export class Container<C extends ContainerChild = ContainerChild> extends EventEmitter<ContainerEvents<C> & AnyEvent>
+export class Container<C extends ContainerChild = ContainerChild> extends EventEmitter<ContainerEvents<C> & AnyEvent> implements Loadable
 {
     /**
      * Mixes all enumerable properties and methods from a source object to Container.
@@ -591,6 +593,33 @@ export class Container<C extends ContainerChild = ContainerChild> extends EventE
     }
 
     /**
+     * chibiland
+     */
+    // @ts-ignore to override
+    public async create(assets: typeof Assets) {
+        // to override
+    }
+
+    /**
+     * chibiland
+     * @param res resource to load
+     */
+    public async load<T extends Loadable>(res: T): Promise<T> {
+        await res.create(Assets);
+        return res;
+    }
+
+    /**
+     * chibiland
+     * @param child
+     */
+    public async add<U extends C>(child: U): Promise<U> {
+        await child.create(Assets);
+        this.addChild(child);
+        return child;
+    }
+
+    /**
      * Adds one or more children to the container.
      *
      * Multiple items can be added like so: `myContainer.addChild(thingOne, thingTwo, thingThree)`
@@ -619,49 +648,46 @@ export class Container<C extends ContainerChild = ContainerChild> extends EventE
 
         const child = children[0];
 
-        if (child.parent === this)
-        {
+        if (child.parent === this) {
             this.children.splice(this.children.indexOf(child), 1);
             this.children.push(child);
 
-            if (this.renderGroup && !this.isRenderGroupRoot)
-            {
+            if (this.renderGroup && !this.isRenderGroupRoot) {
                 this.renderGroup.structureDidChange = true;
             }
 
             return child;
         }
 
-        if (child.parent)
-        {
-            // TODO Optimisation...if the parent has the same render group, this does not need to change!
-            child.parent.removeChild(child);
-        }
+        child.create(Assets).then(() => {
+            if (child.parent) {
+                // TODO Optimisation...if the parent has the same render group, this does not need to change!
+                child.parent.removeChild(child);
+            }
 
-        this.children.push(child);
+            this.children.push(child);
 
-        if (this.sortableChildren) this.sortDirty = true;
+            if (this.sortableChildren) this.sortDirty = true;
 
-        child.parent = this;
+            child.parent = this;
 
-        child.didChange = true;
-        child.didViewUpdate = false;
+            child.didChange = true;
+            child.didViewUpdate = false;
 
-        // TODO - OPtimise this? could check what the parent has set?
-        child._updateFlags = 0b1111;
+            // TODO - OPtimise this? could check what the parent has set?
+            child._updateFlags = 0b1111;
 
-        if (this.renderGroup)
-        {
-            this.renderGroup.addChild(child);
-        }
+            if (this.renderGroup) {
+                this.renderGroup.addChild(child);
+            }
 
-        this.emit('childAdded', child, this, this.children.length - 1);
-        child.emit('added', this);
+            this.emit('childAdded', child, this, this.children.length - 1);
+            child.emit('added', this);
 
-        if (child._zIndex !== 0)
-        {
-            child.depthOfChildModified();
-        }
+            if (child._zIndex !== 0) {
+                child.depthOfChildModified();
+            }
+        });
 
         return child;
     }

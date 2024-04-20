@@ -131,6 +131,10 @@ export class Sprite extends Container implements View
         if (height) this.height = height;
     }
 
+    public async create() {
+        await this.load(this.texture);
+    }
+
     set texture(value: Texture)
     {
         value ||= Texture.EMPTY;

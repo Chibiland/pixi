@@ -9,6 +9,7 @@ import { TextureSource } from './sources/TextureSource';
 import { TextureMatrix } from './TextureMatrix';
 
 import type { TextureResourceOrOptions } from './utils/textureFrom';
+import type {Assets} from "../../../../assets";
 
 /**
  * Stores the width of the non-scalable borders, for example when used with {@link scene.NineSlicePlane} texture.
@@ -65,6 +66,7 @@ export interface TextureOptions
     rotate?: number;
     /** set to true if you plan on modifying the uvs of this texture - can affect performance with high numbers of sprites*/
     dynamic?: boolean;
+    url?: string;
 }
 
 export interface BindableTexture
@@ -201,22 +203,37 @@ export class Texture extends EventEmitter<{
     /** is it a texture? yes! used for type checking */
     public readonly isTexture = true;
 
+    public readonly url: string | undefined;
+
+    public loaded: boolean;
+
     /**
      * @param {TextureOptions} param0 - Options for the texture
      */
-    constructor({
-        source,
-        label,
-        frame,
-        orig,
-        trim,
-        defaultAnchor,
-        defaultBorders,
-        rotate,
-        dynamic
-    }: TextureOptions = {})
+    constructor(options: TextureOptions | string = {}, options2: TextureOptions = {})
     {
         super();
+
+        if (typeof options === 'string')
+        {
+            options = { url: options, ...options2 };
+        }
+
+        const {
+            url,
+            source,
+            label,
+            frame,
+            orig,
+            trim,
+            defaultAnchor,
+            defaultBorders,
+            rotate,
+            dynamic
+        } = options;
+
+        this.url = url;
+        this.loaded = !url;
 
         this.label = label;
         this.source = source?.source ?? new TextureSource();
@@ -246,6 +263,14 @@ export class Texture extends EventEmitter<{
         this.dynamic = dynamic || false;
 
         this.updateUvs();
+    }
+
+    public async create(assets: typeof Assets) {
+        if(this.loaded) return;
+
+        this.source = (await assets.load(this.url)).source;
+        this.loaded = true;
+        this.update();
     }
 
     set source(value: TextureSource)
